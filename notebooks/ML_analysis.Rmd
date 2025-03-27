@@ -1,0 +1,214 @@
+---
+title: "Machine Learning Approaches to Dissect Hybrid and Vaccine-Induced Immunity"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import Required Libraries
+
+```{r message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(mclust)  
+library(umap)   
+library(Rtsne)   
+library(ggplot2) 
+library(fpc)
+library(caret)   
+library(dplyr)   
+```
+
+## **Part 1: Dimensionality Reduction and Clustering**
+
+#### Load and Explore Data
+
+```{r}
+set.seed(983) 
+# Load the synthetic dataset
+load("../data/synth1.rda")
+str(synth1)  
+summary(synth1)
+```
+
+#### **UMAP for Dimensionality Reduction**
+
+```{r message=FALSE, warning=FALSE}
+# Apply UMAP on the dataset, excluding the first column 
+# (assumed to be Infectious status)
+set.seed(289) 
+um <- umap::umap(synth1[,-c(1)], method = 'umap-learn', preserve.seed = T)
+
+# Convert UMAP results into a data frame
+umap_df <- data.frame(um$layout)
+umap_df$Group <- synth1$Infection_0_1pre_2post
+umap_df$ID <- rownames(umap_df) 
+
+# Plot UMAP projection
+ggplot(umap_df, aes(x = X1, y = X2, color = Group)) + 
+  geom_point(size = 3) +
+  scale_color_manual(labels = c("No Infection", "Infection pre-boost", 
+                                "Infection post-boost"),
+                     values = c("#66a182", "#2e4057", "#edae49")) +
+  labs(x = 'UMAP 1', y = 'UMAP 2', title = 'Dimensionality Reduction (UMAP)') +
+  theme_minimal()
+```
+
+#### **Clustering with Gaussian Mixture Model (GMM)**
+
+```{r}
+# Clustering with Gaussian Mixture Model (GMM) on UMAP-reduced data (unsupervised)
+um_gmm = mclust::Mclust(umap_df[, c(1, 2)]) 
+
+# Print summary of clustering results
+summary(um_gmm)
+
+# Plot the clustering results
+plot(um_gmm, "classification") 
+plot(um_gmm, "density")
+```
+
+#### **t-SNE for Dimensionality Reduction**
+
+```{r}
+# Apply t-SNE on the dataset, excluding the first column 
+# (assumed to be Infectious status)
+set.seed(7567)
+tsne <- Rtsne::Rtsne(synth1[, -c(1)], perplexity = 38, normalize=FALSE, theta = 0.5)
+
+# Convert t-SNE results into a data frame
+tsne_df <- data.frame(tsne$Y)
+tsne_df$Group <- synth1$Infection_0_1pre_2post
+tsne_df$ID <- rownames(tsne_df)
+
+# Plot t-SNE projection
+ggplot(tsne_df, aes(x = X1, y = X2, color = Group)) +
+  geom_point(size = 3) +
+  scale_color_manual(labels = c("No Infection", "Infection pre-boost", 
+                                "Infection post-boost"),
+                     values = c("#66a182", "#2e4057", "#edae49")) +
+  labs(x = 't-SNE 1', y = 't-SNE 2', title = 'Dimensionality Reduction (t-SNE)') +
+  theme_minimal()
+```
+
+#### **Clustering with Gaussian Mixture Model (GMM)**
+
+```{r}
+# Clustering with Gaussian Mixture Model (GMM) on t-SNE-reduced data (unsupervised)
+t_gmm <- mclust::Mclust(tsne_df[, c(1, 2)])
+
+# Print summary of clustering results
+summary(t_gmm)
+
+# Plot the clustering results
+plot(t_gmm, "classification")
+plot(t_gmm, "density")
+```
+
+#### **Clustering Evaluation: Within-cluster Sum of Squares & Silhouette Score**
+
+```{r}
+# Compute clustering statistics for UMAP-based clustering
+cs_um_gmm <- fpc::cluster.stats(dist(umap_df[1:2]), um_gmm$classification)
+stats_um_gmm <- cs_um_gmm[c("within.cluster.ss","avg.silwidth")]
+
+# Compute clustering statistics for t-SNE-based clustering
+cs_ts_gmm <- fpc::cluster.stats(dist(tsne_df[1:2]), t_gmm$classification)
+stats_t_gmm <- cs_ts_gmm[c("within.cluster.ss","avg.silwidth")]
+
+# Combine statistics and print Comparison
+stats <- rbind(stats_um_gmm, stats_t_gmm)
+rownames(stats) <- c("UMAP", "t-SNE")
+stats <- as.data.frame(stats)
+stats
+```
+
+------------------------------------------------------------------------
+
+## **Part 2: Unaware Infection Prediction (Classification Task)**
+
+#### **Load and Preprocess Data**
+
+```{r}
+# Load the labeled synthetic dataset (synth2)
+load("../data/synth2.rda")
+
+# Ensure the target variable is a factor
+synth2$Class <- as.factor(synth2$Class)
+
+# Display basic dataset structure and summary
+str(synth2)
+summary(synth2)
+```
+
+#### **Machine Learning Models Construction**
+
+```{r}
+# Set a global seed
+set.seed(1058) 
+
+# Create 5 cross-validation folds to use for all models
+cv_folds <- caret::createFolds(synth2$Class, k = 5, returnTrain = TRUE)
+
+# Define training control settings
+control <- caret::trainControl(
+  method = "cv", number = 5, 
+  classProbs = TRUE, 
+  summaryFunction = multiClassSummary, 
+  verboseIter = TRUE, 
+  index = cv_folds
+)
+```
+
+```{r}
+# Define a function for hyper parameter tuning and training models
+train_model <- function(method, tL) {
+  caret::train(Class ~ ., data = synth2, method = method, 
+               trControl = control, tuneLength = tL)
+}
+
+# Train models with hyperparameter tuning
+knn_model <- train_model("knn", tL = 5)
+rf_model  <- train_model("rf", tL = 5)
+svm_model <- train_model("svmRadial", tL = 5)
+```
+
+#### **Model Performance Evaluation**
+
+```{r}
+# Collect and compare model results
+results <- resamples(list(kNN = knn_model, RF = rf_model, SVM = svm_model))
+
+# Select metrics of interest
+selected_metrics <- results$values %>% 
+  select(contains(c("Accuracy", "Precision", "Recall", "F1")))
+
+# Display performance summary
+summary(selected_metrics)
+
+# Visualization of model performance
+bwplot(results)
+dotplot(results)
+```
+
+#### **Prediction on Unlabeled Data**
+
+```{r}
+# Load synthetic unlabeled data (synth3)
+load("../data/synth3.rda")
+
+# Ensure feature consistency between synth2 and synth3
+common_features <- intersect(names(synth2), names(synth3))
+synth3 <- synth3[, common_features, drop = FALSE]
+
+# Make predictions using trained models
+synth3$kNN <- predict(knn_model, synth3)
+synth3$RF  <- predict(rf_model, synth3)
+synth3$SVM <- predict(svm_model, synth3)
+
+# Compare model predictions
+table(synth3$kNN)
+table(synth3$RF)
+table(synth3$SVM)
+```
