@@ -1,31 +1,40 @@
 ################################################################################
 ########### First Analysis: Dimensionality Reduction and Clustering ############
 ################################################################################
-# This script is the first part of the analysis. It performs dimensionality
-# reduction and clustering on the synthetic data. The data is generated from
-# real data and contains 116 observations and 13 variables. The script compares
-# UMAP and t-SNE for dimensionality reduction and then applies Gaussian Mixture 
-# Models for clustering.
+# This script performs dimensionality reduction and clustering on synthetic data. 
+# The dataset contains 116 observations and 13 variables, generated based on real data. 
+# We compare two methods for dimensionality reduction: UMAP and t-SNE.
+# After reducing the dimensionality, we apply Gaussian Mixture Models (GMM) 
+# for clustering and evaluate the clustering results using:
+#  - Within-cluster sum of squares (WSS) 
+#  - Average silhouette width
+# 
+# The script produces visualizations for both UMAP and t-SNE projections, 
+# as well as clustering results.
+################################################################################
 
+set.seed(983)
 # Load the necessary libraries
 library(mclust)
 library(ggplot2)
 
-# Load the data for the first analysis part
+# Load synthetic data
 data(synth1)
 head(synth1)
 
-# 1. Dimensionality Reduction with UMAP
-set.seed(983)
+##############################
+# Dimensionality Reduction: UMAP
+##############################
 set.seed(289) 
-# UMAP computation
+# Apply UMAP on the dataset, excluding the first column (assumed to be Infectious status)
 um <- umap::umap(synth1[,-c(1)], method = 'umap-learn', preserve.seed = T)
 
-# UMAP plot
+# Convert UMAP results into a data frame
 umap_df <- data.frame(um$layout)
 umap_df$Group <- synth1$Infection_0_1pre_2post
 umap_df$ID <- rownames(umap_df) 
 
+# Plot UMAP projection
 ggplot(umap_df, aes(x = X1, y = X2, color = Group)) + 
   geom_point(size = 3) +
   scale_color_manual(labels = c("No Infection", "Infection pre-boost", 
@@ -34,27 +43,29 @@ ggplot(umap_df, aes(x = X1, y = X2, color = Group)) +
   labs(x = 'UMAP 1', y = 'UMAP 2', title = 'Dimensionality Reduction (UMAP)') +
   theme_minimal()
 
-
-# UMAP cluster using gmm from mclust library (unsupervised)
+# Clustering with Gaussian Mixture Model (GMM) on UMAP-reduced data (unsupervised)
 um_gmm = mclust::Mclust(umap_df[, c(1, 2)]) 
+
 # Print summary of clustering results
 summary(um_gmm)
 # Plot the clustering results
 plot(um_gmm, "classification") 
 plot(um_gmm, "density")
-plot(um_gmm, "BIC")
 
 
-# 2. Dimensionality Reduction with t-SNE
+##############################
+# Dimensionality Reduction: t-SNE
+##############################
 set.seed(7567)
-# t-SNE computation
+# Apply t-SNE on the dataset, excluding the first column (assumed to be Infectious status)
 tsne <- Rtsne::Rtsne(synth1[, -c(1)], perplexity = 38, normalize=FALSE, theta = 0.5)
 
-# t-SNE plot
+# Convert t-SNE results into a data frame
 tsne_df <- data.frame(tsne$Y)
 tsne_df$Group <- synth1$Infection_0_1pre_2post
 tsne_df$ID <- rownames(tsne_df)
 
+# Plot t-SNE projection
 ggplot(tsne_df, aes(x = X1, y = X2, color = Group)) +
   geom_point(size = 3) +
   scale_color_manual(labels = c("No Infection", "Infection pre-boost", 
@@ -63,36 +74,29 @@ ggplot(tsne_df, aes(x = X1, y = X2, color = Group)) +
   labs(x = 't-SNE 1', y = 't-SNE 2', title = 'Dimensionality Reduction (t-SNE)') +
   theme_minimal()
 
-# t-SNE cluster using gmm from mclust library (unsupervised)
+# Clustering with Gaussian Mixture Model (GMM) on t-SNE-reduced data (unsupervised)
 t_gmm <- mclust::Mclust(tsne_df[, c(1, 2)])
+
 # Print summary of clustering results
 summary(t_gmm)
 # Plot the clustering results
 plot(t_gmm, "classification")
 plot(t_gmm, "density")
-plot(t_gmm, "BIC")
 
 
-# 3. Comparison in terms of within.cluster.ss and avg.silwidth
-# UMAP
+##############################
+# Clustering Performance Evaluation
+##############################
+# Compute clustering statistics for UMAP-based clustering
 cs_um_gmm <- fpc::cluster.stats(dist(umap_df[1:2]), um_gmm$classification)
 stats_um_gmm <- cs_um_gmm[c("within.cluster.ss","avg.silwidth")]
-# t-SNE
+
+# Compute clustering statistics for t-SNE-based clustering
 cs_ts_gmm <- fpc::cluster.stats(dist(tsne_df[1:2]), t_gmm$classification)
 stats_t_gmm <- cs_ts_gmm[c("within.cluster.ss","avg.silwidth")]
-# Print Comparison
+
+# Combine statistics and print Comparison
 stats <- rbind(stats_um_gmm, stats_t_gmm)
 rownames(stats) <- c("UMAP", "t-SNE")
 stats <- as.data.frame(stats)
 stats
-
-
-
-
-
-
-
-
-
-
-
