@@ -17,10 +17,11 @@
 # Load necessary libraries
 library(caret)
 library(dplyr)
+library(foreach)
+library(doParallel)
 
 # Load the labeled synthetic dataset (synth2)
-data("synth2")
-
+load("data/synth2.rda")
 # Ensure the target variable is a factor
 synth2$Class <- as.factor(synth2$Class)
 
@@ -68,8 +69,90 @@ summary(selected_metrics)
 bwplot(results)
 dotplot(results)
 
+# Variable Importance analysis
+# Define a function to compute permutation-based feature importance for SVM and k-NN
+permute_importance <- function(model, data, target_col, metric = "Accuracy", 
+                               n_permutations = 10, parallel = TRUE) {
+  set.seed(0306)
+  
+  y <- data[[target_col]]
+  if (!is.factor(y)) y <- as.factor(y)  # Converte il target in fattore se necessario
+  X <- data[, colnames(data) != target_col, drop = FALSE]
+  
+  # Check input data
+  stopifnot(is.data.frame(data))
+  stopifnot(target_col %in% colnames(data))
+  stopifnot(nrow(data) > 10) 
+  
+  # Compute original accuracy
+  original_preds <- predict(model, newdata = X)
+  if (is.numeric(original_preds)) {
+    original_preds <- ifelse(original_preds > 0.5, levels(y)[2], levels(y)[1])}
+  original_acc <- mean(original_preds == y)
+  
+  # Prepare data frame to store importances
+  importances <- data.frame(Feature = colnames(X), Importance = 0)
+  
+  # Allow parallel computation
+  if (parallel) {
+    registerDoParallel(cores = detectCores() - 1)}
+  
+  # Loop on each feature and compute importances
+  results <- foreach(feature = colnames(X), .combine = rbind, .packages = "caret") %dopar% {
+    acc_drops <- numeric(n_permutations)
+    
+    for (i in 1:n_permutations) {
+      X_permuted <- X
+      X_permuted[[feature]] <- sample(na.omit(X_permuted[[feature]]), replace = TRUE)
+      
+      permuted_preds <- predict(model, newdata = X_permuted)
+      permuted_acc <- mean(permuted_preds == y)
+      
+      acc_drops[i] <- original_acc - permuted_acc}
+    data.frame(Feature = feature, Importance = median(acc_drops))}
+  
+  # End parallel computation
+  if (parallel) {
+    stopImplicitCluster()}
+  
+  # Organize results
+  results <- results[order(-results$Importance), ]
+  
+  # Plot importances
+  p <- ggplot(results, aes(x = reorder(Feature, Importance), y = Importance)) +
+    geom_col(fill = "steelblue") +
+    coord_flip() +
+    labs(title = "Feature Importance via Permutation",
+         x = "Feature",
+         y = "Importance (Drop in Accuracy)") +
+    theme_minimal()
+  print(p)
+  
+  return(results)
+}
+
+# Compute permutation-based importances for SVM-Radial
+importance_svm <- permute_importance(svm_model, synth2, "Class", metric = "Accuracy", n_permutations = 10)
+print(importance_svm)
+# Compute permutation-based importances for k-NN
+importance_knn <- permute_importance(knn_model, synth2, "Class", metric = "Accuracy", n_permutations = 30)
+print(importance_knn)
+# Compute vip based importances for Random Forest
+importance_rf <- caret::varImp(rf_model, scale = TRUE)
+importance_rf <- importance_rf$importance
+importance_rf$Feature <- rownames(importance_rf)
+ggplot(importance_rf, aes(x = reorder(Feature, Overall), y = Overall)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Feature Importance via Permutation",
+       x = "Feature",
+       y = "Importance (Drop in Accuracy)") +
+  theme_minimal()
+print(importance_rf)
+
+
 # Load synthetic unlabeled data (synth3)
-data("synth3")
+load("data/synth3.rda")
 
 # Ensure feature consistency between synth2 and synth3
 common_features <- intersect(names(synth2), names(synth3))
