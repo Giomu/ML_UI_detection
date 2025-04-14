@@ -83,6 +83,8 @@ To reproduce the analyses presented in the manuscript and run the pipeline local
     install.packages(c("mclust", "umap", "Rtsne", "ggplot2", "fpc", "caret", "dplyr"))
     ```
 
+    For proper installation and usage of these packages, please refer to the official documentation of each library, as system-specific dependencies or configuration steps may apply.
+
 6.  **Run the Analysis**
 
     -   To reproduce the unsupervised immune profiling via UMAP/t-SNE + GMM, run `R/1_UMAP_GMM.R`
