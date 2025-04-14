@@ -1,6 +1,6 @@
 # Machine Learning Approaches to Dissect Hybrid and Vaccine-Induced Immunity
 
-This repository contains the code accompanying the paper titled "***Machine Learning Approaches to Dissect Hybrid and Vaccine-Induced Immunity***" authored by *G. Montesi, S. Costagli et al*.
+This repository contains the code associated with the paper titled "***Machine Learning Approaches to Dissect Hybrid and Vaccine-Induced Immunity***" authored by *G. Montesi, S. Costagli et al*.
 
 ## Overview
 
@@ -45,7 +45,7 @@ This repository provides the full implementation of the analysis presented in th
 
 ## Synthetic Data
 
-Please note that the datasets included in this repository are fully synthetic and were generated solely for the purpose of demonstrating the analytical workflow of the Maniscript. These datasets do not reflect the real patient data used in the study and do not contain any sensitive or personally identifiable information.
+Please note that the datasets included in this repository are fully synthetic and were generated solely for the purpose of demonstrating the analytical workflow of the Manuscript. These datasets do not reflect the real patient data used in the study and do not contain any sensitive or personally identifiable information.
 
 Due to ethical considerations and data privacy regulations, the original clinical and immunological datasets cannot be shared publicly, however data here reported allow users to understand and replicate the methodology without accessing proprietary information.
 
@@ -77,7 +77,7 @@ To reproduce the analyses presented in the manuscript and run the pipeline local
 
 5.  **Install Required Packages**
 
-    The pipeline relies on several R packages for dimensionality reduction, clustering, and classification. You can install them by running:
+    The pipeline relies on several R packages for dimensionality reduction, clustering, and classification. You can install them by running in your R Console:
 
     ```{r}
     install.packages(c("mclust", "umap", "Rtsne", "ggplot2", "fpc", "caret", "dplyr"))
