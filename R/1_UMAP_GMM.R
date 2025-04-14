@@ -2,7 +2,8 @@
 ########### First Analysis: Dimensionality Reduction and Clustering ############
 ################################################################################
 # This script performs dimensionality reduction and clustering on synthetic data. 
-# The dataset contains 116 observations and 13 variables, generated based on real data. 
+# The dataset contains 116 synthetic observations and 13 variables, generated 
+# based on real data. 
 # We compare two methods for dimensionality reduction: UMAP and t-SNE.
 # After reducing the dimensionality, we apply Gaussian Mixture Models (GMM) 
 # for clustering and evaluate the clustering results using:
@@ -19,7 +20,7 @@ library(mclust)
 library(ggplot2)
 
 # Load synthetic data
-data(synth1)
+load("data/synth1.rda")
 head(synth1)
 
 ##############################

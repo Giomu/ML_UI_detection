@@ -17,15 +17,6 @@ for(p in requiredPackages){
   if(!require(p, character.only = TRUE)) install.packages(p)
   library(p, character.only = TRUE)
 }
-# library(mclust)  
-# library(umap)   
-# library(Rtsne)   
-# library(ggplot2) 
-# library(fpc)
-# library(caret)   
-# library(dplyr)   
-# library(foreach)
-# library(doParallel)
 ```
 
 ## **Part 1: Dimensionality Reduction and Clustering**
@@ -284,7 +275,7 @@ ggplot(importance_rf, aes(x = reorder(Feature, Overall), y = Overall)) +
 print(importance_rf)
 ```
 
-#### **Prediction on Unlabeled Data**
+#### **Model Application: Prediction on Unlabelled Data**
 
 ```{r}
 # Load synthetic unlabeled data (synth3)

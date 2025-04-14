@@ -1,15 +1,15 @@
-###################### Second Analysis: Unaware Infection Prediction #######################
-# This script compares different classification models (k-NN, Random Forest, SVM-Radial) 
-# for predicting asymptomatic infections using a labelled synthetic dataset (synth2). The models 
-# are trained with 5-fold cross-validation and their performance is evaluated based on 
-# multiple metrics. The best-performing model is then used for final predictions 
-# on an unlabelled dataset (synth3).
+################### Second Analysis: Unaware Infection Identification ####################
+# This script compares different classification models (k-NN, Random Forest, SVM-RBF) 
+# for predicting asymptomatic infections using a labelled synthetic dataset (synth2). 
+# The models are trained with 5-fold cross-validation and their performance is evaluated  
+# based on multiple metrics. The best-performing model is then used for final predictions 
+# on a synthetic unlabelled dataset (synth3).
 #
 # Steps:
 # 1. Load and explore synthetic data
 # 2. Define cross-validation settings
 # 3. Train k-NN, Random Forest, and SVM models
-# 4. Compare model performance using key metrics
+# 4. Compare model performance using several metrics
 # 5. Predict asymptomatic infection status using the best model
 #
 ##########################################################################################
