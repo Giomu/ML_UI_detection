@@ -85,13 +85,11 @@ To reproduce the analyses presented in the manuscript and run the pipeline local
 
 6.  **Run the Analysis**
 
-    -   To reproduce the unsupervised immune profiling via UMAP/t-SNE + GMM, run:\
-        `R/1_UMAP_GMM.R`
+    -   To reproduce the unsupervised immune profiling via UMAP/t-SNE + GMM, run `R/1_UMAP_GMM.R`
 
-    -   To reproduce the supervised classification and unaware infection detection, run:\
-        `R/2_UI_detection.R`
+    -   To reproduce the supervised classification and unaware infection detection, run `R/2_UI_detection.R`
 
-    -   Alternatively, you can explore the full pipeline interactively via the notebook in the `notebooks/` folder.
+    -   Alternatively, you can explore the full pipeline interactively via the notebook in the `notebooks/` folder.
 
 Detailed instructions on how to use the code, including examples, are provided within the notebook in the `notebooks/` directory. The notebook walk through the entire process from data loading to model evaluation.
 
