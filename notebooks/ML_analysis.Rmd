@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE, warning=FALSE}
 # Load necessary libraries
 requiredPackages <- c('mclust', 'umap', 'Rtsne', 'ggplot2', 'fpc', 
-                      'caret', 'dplyr', 'foreach', 'doParallel')
+                      'caret', 'dplyr', 'foreach', 'doParallel', 'MLmetrics')
 for(p in requiredPackages){
   if(!require(p, character.only = TRUE)) install.packages(p)
   library(p, character.only = TRUE)

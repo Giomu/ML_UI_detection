@@ -11,13 +11,16 @@
 #  - Average silhouette width
 # 
 # The script produces visualizations for both UMAP and t-SNE projections, 
-# as well as clustering results.
+# as well as clustering results and metrics.
 ################################################################################
 
 set.seed(983)
 # Load the necessary libraries
+library(umap)
 library(mclust)
 library(ggplot2)
+library(Rtsne)
+library(fpc)
 
 # Load synthetic data
 load("data/synth1.rda")

@@ -19,6 +19,7 @@ library(caret)
 library(dplyr)
 library(foreach)
 library(doParallel)
+library(MLmetrics)
 
 # Load the labeled synthetic dataset (synth2)
 load("data/synth2.rda")

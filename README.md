@@ -80,7 +80,14 @@ To reproduce the analyses presented in the manuscript and run the pipeline local
     The pipeline relies on several R packages for dimensionality reduction, clustering, and classification. You can install them by running in your R Console:
 
     ```{r}
-    install.packages(c("mclust", "umap", "Rtsne", "ggplot2", "fpc", "caret", "dplyr"))
+    install.packages(c("mclust", 
+                       "umap", 
+                       "Rtsne", 
+                       "ggplot2", 
+                       "fpc", 
+                       "caret", 
+                       "dplyr", 
+                       "MLmetrics"))
     ```
 
     For proper installation and usage of these packages, please refer to the official documentation of each library, as system-specific dependencies or configuration steps may apply.
